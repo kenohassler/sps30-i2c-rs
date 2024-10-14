@@ -41,7 +41,7 @@ where I2C: i2c::Read<Error = E> + i2c::Write<Error = E> {
     
     pub(crate) fn write_data(&mut self, buffer: &mut [u8]) -> Result<(), Error<E>>{
         if buffer.is_empty() {
-            let _ = self.i2c.write(self.address, &buffer);
+            let _ = self.i2c.write(self.address, buffer);
             return Ok(());
         }
 
@@ -49,7 +49,7 @@ where I2C: i2c::Read<Error = E> + i2c::Write<Error = E> {
             self.add_crc(buffer);
         }
 
-        self.i2c.write(self.address, &buffer).map_err(Error::I2C)
+        self.i2c.write(self.address, buffer).map_err(Error::I2C)
     }
 
     fn check_crc(&mut self, data: &[u8]) -> Result<(), Error<E>> {
