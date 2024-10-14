@@ -9,15 +9,15 @@ keywords = ["sensor", "driver", "i2c", "embedded-hal-driver"]
 categories = ["embedded", "hardware-support", "no-std"]
 homepage = "https://github.com/david-gherghita/sps30-i2c-rs"
 documentation = "https://docs.rs/sps30-i2c"
-edition = "2018"
+edition = "2021"
 
 [badges]
 travis-ci = { repository = "david-gherghita/sps30-i2c-rs", branch = "master" }
 
 [dependencies]
-embedded-hal = "0.2"
+embedded-hal = "1.0"
 byteorder = { version = "1", default-features = false }
 
 [dev-dependencies]
-linux-embedded-hal = "0.3"
-embedded-hal-mock = "0.7"
+linux-embedded-hal = "0.4"
+embedded-hal-mock = "0.11"

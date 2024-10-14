@@ -1,6 +1,6 @@
-use crate::types::Error;
 use crate::crc;
-use embedded_hal::blocking::i2c;
+use crate::types::Error;
+use embedded_hal::i2c;
 
 pub mod sps30 {
     pub const DEV_ADDR: u8 = 0x69;
@@ -30,16 +30,18 @@ pub mod sps30 {
     }
 }
 
-impl<I2C, D, E> crate::Sps30<I2C, D>
-where I2C: i2c::Read<Error = E> + i2c::Write<Error = E> {
-    pub(crate) fn read_data(&mut self, buffer: &mut [u8]) -> Result<(), Error<E>> {
+impl<I2C, D> crate::Sps30<I2C, D>
+where
+    I2C: i2c::I2c,
+{
+    pub(crate) fn read_data(&mut self, buffer: &mut [u8]) -> Result<(), Error<I2C::Error>> {
         self.i2c.read(self.address, buffer).map_err(Error::I2C)?;
         self.check_crc(buffer)?;
         self.remove_crc(buffer);
         Ok(())
     }
-    
-    pub(crate) fn write_data(&mut self, buffer: &mut [u8]) -> Result<(), Error<E>>{
+
+    pub(crate) fn write_data(&mut self, buffer: &mut [u8]) -> Result<(), Error<I2C::Error>> {
         if buffer.is_empty() {
             let _ = self.i2c.write(self.address, buffer);
             return Ok(());
@@ -52,7 +54,7 @@ where I2C: i2c::Read<Error = E> + i2c::Write<Error = E> {
         self.i2c.write(self.address, buffer).map_err(Error::I2C)
     }
 
-    fn check_crc(&mut self, data: &[u8]) -> Result<(), Error<E>> {
+    fn check_crc(&mut self, data: &[u8]) -> Result<(), Error<I2C::Error>> {
         for i in 0..data.len() {
             if i % 3 == 2 && crc::calc_crc(&[data[i - 2], data[i - 1]]) != data[i] {
                 return Err(Error::ChecksumMismatch);

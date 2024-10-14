@@ -1,8 +1,8 @@
 //! This is a platform agnostic Rust driver for the SPS30 particulate matter
 //! sensor using the [`embedded-hal`] traits.
-//! 
+//!
 //! [`embedded-hal`]: https://github.com/rust-embedded/embedded-hal
-//! 
+//!
 //! The driver supports only floating point output and is written for the
 //! firmware version 2.1. Although it is fully compatible with older versions
 //! and the 2.2 version, it doesn't fully support the latest.
@@ -23,7 +23,7 @@
 //! - Read device status register. See: [`read_device_status_register()`].
 //! - Clear device status register. See: [`clear_device_status_register()`].
 //! - Reset the device. See: [`device_reset()`].
-//! 
+//!
 //! [`start_measurement()`]: struct.Sps30.html#method.start_measurement
 //! [`stop_measurement`]: struct.Sps30.html#method.stop_measurement
 //! [`read_data_ready_flag()`]: struct.Sps30.html#method.read_data_ready_flag
@@ -39,9 +39,9 @@
 //! [`read_device_status_register()`]: struct.Sps30.html#method.read_device_status_register
 //! [`clear_device_status_register()`]: struct.Sps30.html#method.clear_device_status_register
 //! [`device_reset()`]: struct.Sps30.html#method.device_reset
-//! 
+//!
 //! ## The device
-//! 
+//!
 //! The SPS30 Particulate Matter (PM) sensor is a technological breakthrough
 //! in optical PM sensors. Its measurement principle is based on laser
 //! scattering and makes use of Sensirion's innovative contamination-resistance
@@ -51,7 +51,7 @@
 //! advanced algorithms provide superior precision for different PM types and
 //! higher-resolution particle size binning, opening up new possibilities for
 //! the detection of different sorts of environmental dust and other particles.
-//! 
+//!
 //! The SPS30 has been designed for use in various applications and devices, such as:
 //! - Air purifiers
 //! - HVAC equipment
@@ -59,18 +59,24 @@
 //! - Air conditioners
 //! - Air quality and environmental monitors
 //! - Smart home and IoT devices
-//! 
+//!
 //! Documentation:
 //! - Datasheet: https://www.sensirion.com/fileadmin/user_upload/customers/sensirion/Dokumente/9.6_Particulate_Matter/Datasheets/Sensirion_PM_Sensors_SPS30_Datasheet.pdf
 //!
-//! ## Usage 
-//! 
+//! ## Usage
+//!
 //! To use this driver, import this crate and an `embedded-hal` implementation,
 //! then instantiate the device.
-//! 
+//!
 //! Please see examples folder.
 
-#![deny(missing_docs, rust_2018_idioms, unsafe_code, unused_qualifications, warnings)]
+#![deny(
+    missing_docs,
+    rust_2018_idioms,
+    unsafe_code,
+    unused_qualifications,
+    warnings
+)]
 #![no_std]
 
 mod crc;
