@@ -2,7 +2,10 @@ use crate::register_access::sps30::{Register, StatusRegisterBits, DEV_ADDR};
 use crate::types::{AirInfo, Error, StatusRegisterResult};
 use crate::Sps30;
 use byteorder::{BigEndian, ByteOrder};
+#[cfg(feature = "sync")]
 use embedded_hal::{delay, i2c};
+#[cfg(not(feature = "sync"))]
+use embedded_hal_async::{delay, i2c};
 
 impl<I2C, D> Sps30<I2C, D>
 where
@@ -25,36 +28,39 @@ where
 
     /// Enter measurement mode
     /// Command execution time: 20 ms
-    pub fn start_measurement(&mut self) -> Result<(), Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub async fn start_measurement(&mut self) -> Result<(), Error<I2C::Error>> {
         let mut data: [u8; 5] = [0; 5];
         data[..2].clone_from_slice(&Register::START_MEASUREMENT[..2]);
         data[2] = 0x03;
 
-        self.write_data(&mut data)?;
-        self.delay.delay_ms(20);
+        self.write_data(&mut data).await?;
+        self.delay.delay_ms(20).await;
 
         Ok(())
     }
 
     /// Exit measurement mode
     /// Command execution time: 20 ms
-    pub fn stop_measurement(&mut self) -> Result<(), Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub async fn stop_measurement(&mut self) -> Result<(), Error<I2C::Error>> {
         let mut data: [u8; 2] = Register::STOP_MEASUREMENT;
 
-        self.write_data(&mut data)?;
-        self.delay.delay_ms(20);
+        self.write_data(&mut data).await?;
+        self.delay.delay_ms(20).await;
 
         Ok(())
     }
 
     /// Poll for the availability of new measurements
     /// Command execution time: -
-    pub fn read_data_ready_flag(&mut self) -> Result<bool, Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub async fn read_data_ready_flag(&mut self) -> Result<bool, Error<I2C::Error>> {
         let mut data: [u8; 2] = Register::READ_DATA_READY_FLAG;
-        self.write_data(&mut data)?;
+        self.write_data(&mut data).await?;
 
         let mut buffer: [u8; 3] = [0; 3];
-        self.read_data(&mut buffer)?;
+        self.read_data(&mut buffer).await?;
 
         if buffer[1] == 0 {
             Ok(false)
@@ -65,12 +71,13 @@ where
 
     /// Read the measured values
     /// Command execution time: -
-    pub fn read_measured_values(&mut self) -> Result<AirInfo, Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub async fn read_measured_values(&mut self) -> Result<AirInfo, Error<I2C::Error>> {
         let mut data: [u8; 2] = Register::READ_MEASURED_VALUES;
-        self.write_data(&mut data)?;
+        self.write_data(&mut data).await?;
 
         let mut buffer: [u8; 60] = [0; 60];
-        self.read_data(&mut buffer)?;
+        self.read_data(&mut buffer).await?;
 
         let air_info: AirInfo = AirInfo {
             mass_pm1_0: BigEndian::read_f32(&buffer[0..]),
@@ -90,23 +97,25 @@ where
 
     /// Enter sleep mode
     /// Command execution time: 5 ms
-    pub fn sleep(&mut self) -> Result<(), Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub async fn sleep(&mut self) -> Result<(), Error<I2C::Error>> {
         let mut data: [u8; 2] = Register::SLEEP;
 
-        self.write_data(&mut data)?;
-        self.delay.delay_ms(5);
+        self.write_data(&mut data).await?;
+        self.delay.delay_ms(5).await;
 
         Ok(())
     }
 
     /// Exit sleep mode
     /// Command execution time: 5 ms
-    pub fn wake_up(&mut self) -> Result<(), Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub async fn wake_up(&mut self) -> Result<(), Error<I2C::Error>> {
         let mut data: [u8; 2] = Register::WAKE_UP;
 
-        self.write_data(&mut [])?;
-        self.write_data(&mut data)?;
-        self.delay.delay_ms(5);
+        self.write_data(&mut []).await?;
+        self.write_data(&mut data).await?;
+        self.delay.delay_ms(5).await;
 
         Ok(())
     }
@@ -114,50 +123,54 @@ where
     /// Start the fan-cleaning manually
     /// This commmand can only be executed in Measurement-Mode
     /// Command execution time: 5 ms
-    pub fn start_fan_cleaning(&mut self) -> Result<(), Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub async fn start_fan_cleaning(&mut self) -> Result<(), Error<I2C::Error>> {
         let mut data: [u8; 2] = Register::START_FAN_CLEANING;
 
-        self.write_data(&mut data)?;
-        self.delay.delay_ms(5);
+        self.write_data(&mut data).await?;
+        self.delay.delay_ms(5).await;
 
         Ok(())
     }
 
     /// Read the interval[s] of the periodic fan-cleaning
     /// Command execution time: 5 ms
-    pub fn read_auto_cleaning_interval(&mut self) -> Result<u32, Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub async fn read_auto_cleaning_interval(&mut self) -> Result<u32, Error<I2C::Error>> {
         let mut data: [u8; 2] = Register::READ_WRITE_AUTO_CLEANING_INTERVAL;
 
-        self.write_data(&mut data)?;
-        self.delay.delay_ms(5);
+        self.write_data(&mut data).await?;
+        self.delay.delay_ms(5).await;
 
         let mut buffer: [u8; 6] = [0; 6];
-        self.read_data(&mut buffer)?;
+        self.read_data(&mut buffer).await?;
 
         Ok(BigEndian::read_u32(&buffer))
     }
 
     /// Write the interval[s] of the periodic fan-cleaning
     /// Command execution time: 20 ms
-    pub fn write_auto_cleaning_interval(&mut self, n: u32) -> Result<(), Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub async fn write_auto_cleaning_interval(&mut self, n: u32) -> Result<(), Error<I2C::Error>> {
         let mut data: [u8; 8] = [0; 8];
         data[..2].clone_from_slice(&Register::READ_WRITE_AUTO_CLEANING_INTERVAL[..2]);
         BigEndian::write_u32(&mut data[2..], n);
 
-        self.write_data(&mut data)?;
-        self.delay.delay_ms(20);
+        self.write_data(&mut data).await?;
+        self.delay.delay_ms(20).await;
 
         Ok(())
     }
 
     /// Read device product type
     /// Command execution time: -
-    pub fn read_device_product_type(&mut self) -> Result<[u8; 8], Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub async fn read_device_product_type(&mut self) -> Result<[u8; 8], Error<I2C::Error>> {
         let mut data: [u8; 2] = Register::READ_DEVICE_PRODUCT_TYPE;
-        self.write_data(&mut data)?;
+        self.write_data(&mut data).await?;
 
         let mut buffer: [u8; 12] = [0; 12];
-        self.read_data(&mut buffer)?;
+        self.read_data(&mut buffer).await?;
 
         let mut res: [u8; 8] = [0; 8];
         res[..8].clone_from_slice(&buffer[..8]);
@@ -167,12 +180,13 @@ where
 
     /// Read device serial number
     /// Command execution time: -
-    pub fn read_device_serial_number(&mut self) -> Result<[u8; 32], Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub async fn read_device_serial_number(&mut self) -> Result<[u8; 32], Error<I2C::Error>> {
         let mut data: [u8; 2] = Register::READ_DEVICE_SERIAL_NUMBER;
-        self.write_data(&mut data)?;
+        self.write_data(&mut data).await?;
 
         let mut buffer: [u8; 48] = [0; 48];
-        self.read_data(&mut buffer)?;
+        self.read_data(&mut buffer).await?;
 
         let mut res: [u8; 32] = [0; 32];
         res[..32].clone_from_slice(&buffer[..32]);
@@ -182,26 +196,28 @@ where
 
     /// Read firmware version
     /// Command execution time: -
-    pub fn read_firmware_version(&mut self) -> Result<(u8, u8), Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub async fn read_firmware_version(&mut self) -> Result<(u8, u8), Error<I2C::Error>> {
         let mut data: [u8; 2] = Register::READ_FIRMWARE_VERSION;
-        self.write_data(&mut data)?;
+        self.write_data(&mut data).await?;
 
         let mut buffer: [u8; 3] = [0; 3];
-        self.read_data(&mut buffer)?;
+        self.read_data(&mut buffer).await?;
 
         Ok((buffer[0], buffer[1]))
     }
 
     /// Read device status register
     /// Command execution time: -
-    pub fn read_device_status_register(
+    #[maybe_async::maybe_async]
+    pub async fn read_device_status_register(
         &mut self,
     ) -> Result<StatusRegisterResult, Error<I2C::Error>> {
         let mut data: [u8; 2] = Register::READ_DEVICE_STATUS_REGISTER;
-        self.write_data(&mut data)?;
+        self.write_data(&mut data).await?;
 
         let mut buffer: [u8; 6] = [0; 6];
-        self.read_data(&mut buffer)?;
+        self.read_data(&mut buffer).await?;
 
         let res = BigEndian::read_u32(&buffer);
 
@@ -220,22 +236,24 @@ where
 
     /// Clear device status register
     /// Command execution time: 5 ms
-    pub fn clear_device_status_register(&mut self) -> Result<(), Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub async fn clear_device_status_register(&mut self) -> Result<(), Error<I2C::Error>> {
         let mut data: [u8; 2] = Register::CLEAR_DEVICE_STATUS_REGISTER;
 
-        self.write_data(&mut data)?;
-        self.delay.delay_ms(5);
+        self.write_data(&mut data).await?;
+        self.delay.delay_ms(5).await;
 
         Ok(())
     }
 
     /// Reset the device
     /// Command execution time: 100 ms
-    pub fn device_reset(&mut self) -> Result<(), Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub async fn device_reset(&mut self) -> Result<(), Error<I2C::Error>> {
         let mut data: [u8; 2] = Register::DEVICE_RESET;
 
-        self.write_data(&mut data)?;
-        self.delay.delay_ms(100);
+        self.write_data(&mut data).await?;
+        self.delay.delay_ms(100).await;
 
         Ok(())
     }

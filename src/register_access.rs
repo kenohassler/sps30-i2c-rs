@@ -1,6 +1,9 @@
 use crate::crc;
 use crate::types::Error;
+#[cfg(feature = "sync")]
 use embedded_hal::i2c;
+#[cfg(not(feature = "sync"))]
+use embedded_hal_async::i2c;
 
 pub mod sps30 {
     pub const DEV_ADDR: u8 = 0x69;
@@ -34,16 +37,21 @@ impl<I2C, D> crate::Sps30<I2C, D>
 where
     I2C: i2c::I2c,
 {
-    pub(crate) fn read_data(&mut self, buffer: &mut [u8]) -> Result<(), Error<I2C::Error>> {
-        self.i2c.read(self.address, buffer).map_err(Error::I2C)?;
+    #[maybe_async::maybe_async]
+    pub(crate) async fn read_data(&mut self, buffer: &mut [u8]) -> Result<(), Error<I2C::Error>> {
+        self.i2c
+            .read(self.address, buffer)
+            .await
+            .map_err(Error::I2C)?;
         self.check_crc(buffer)?;
         self.remove_crc(buffer);
         Ok(())
     }
 
-    pub(crate) fn write_data(&mut self, buffer: &mut [u8]) -> Result<(), Error<I2C::Error>> {
+    #[maybe_async::maybe_async]
+    pub(crate) async fn write_data(&mut self, buffer: &mut [u8]) -> Result<(), Error<I2C::Error>> {
         if buffer.is_empty() {
-            let _ = self.i2c.write(self.address, buffer);
+            let _ = self.i2c.write(self.address, buffer).await;
             return Ok(());
         }
 
@@ -51,7 +59,10 @@ where
             self.add_crc(buffer);
         }
 
-        self.i2c.write(self.address, buffer).map_err(Error::I2C)
+        self.i2c
+            .write(self.address, buffer)
+            .await
+            .map_err(Error::I2C)
     }
 
     fn check_crc(&mut self, data: &[u8]) -> Result<(), Error<I2C::Error>> {

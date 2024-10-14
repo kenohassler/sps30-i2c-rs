@@ -40,15 +40,15 @@ fn calc_crc(data: &[u8; 2]) -> u8 {
     crc
 }
 
-#[test]
-fn test_create_destroy() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_create_destroy() {
     let sensor = Sps30::new_sps30(I2cMock::new(&[]), NoopDelay);
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_start_measurement() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_start_measurement() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::START_MEASUREMENT);
     cmd.extend_from_slice(&[0x03, 0x00, calc_crc(&[0x03, 0x00])]);
@@ -56,26 +56,26 @@ fn test_start_measurement() {
     let expectations = [I2cTrans::write(DEV_ADDR, cmd)];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.start_measurement().unwrap();
+    sensor.start_measurement().await.unwrap();
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_stop_measurement() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_stop_measurement() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::STOP_MEASUREMENT);
 
     let expectations = [I2cTrans::write(DEV_ADDR, cmd)];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.stop_measurement().unwrap();
+    sensor.stop_measurement().await.unwrap();
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_read_data_ready_flag() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_read_data_ready_flag() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::READ_DATA_READY_FLAG);
 
@@ -88,13 +88,13 @@ fn test_read_data_ready_flag() {
     ];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.read_data_ready_flag().unwrap();
+    sensor.read_data_ready_flag().await.unwrap();
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_read_measured_values() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_read_measured_values() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::READ_MEASURED_VALUES);
 
@@ -111,26 +111,26 @@ fn test_read_measured_values() {
     ];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.read_measured_values().unwrap();
+    sensor.read_measured_values().await.unwrap();
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_sleep() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_sleep() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::SLEEP);
 
     let expectations = [I2cTrans::write(DEV_ADDR, cmd)];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.sleep().unwrap();
+    sensor.sleep().await.unwrap();
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_wake_up() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_wake_up() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::WAKE_UP);
 
@@ -140,26 +140,26 @@ fn test_wake_up() {
     ];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.wake_up().unwrap();
+    sensor.wake_up().await.unwrap();
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_start_fan_cleaning() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_start_fan_cleaning() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::START_FAN_CLEANING);
 
     let expectations = [I2cTrans::write(DEV_ADDR, cmd)];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.start_fan_cleaning().unwrap();
+    sensor.start_fan_cleaning().await.unwrap();
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_read_auto_cleaning_interval() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_read_auto_cleaning_interval() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::READ_WRITE_AUTO_CLEANING_INTERVAL);
 
@@ -176,13 +176,13 @@ fn test_read_auto_cleaning_interval() {
     ];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.read_auto_cleaning_interval().unwrap();
+    sensor.read_auto_cleaning_interval().await.unwrap();
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_write_auto_cleaning_interval() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_write_auto_cleaning_interval() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::READ_WRITE_AUTO_CLEANING_INTERVAL);
     cmd.extend_from_slice(&[0; 6]);
@@ -195,13 +195,13 @@ fn test_write_auto_cleaning_interval() {
     let expectations = [I2cTrans::write(DEV_ADDR, cmd)];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.write_auto_cleaning_interval(0).unwrap();
+    sensor.write_auto_cleaning_interval(0).await.unwrap();
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_read_device_product_type() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_read_device_product_type() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::READ_DEVICE_PRODUCT_TYPE);
 
@@ -218,13 +218,13 @@ fn test_read_device_product_type() {
     ];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.read_device_product_type().unwrap();
+    sensor.read_device_product_type().await.unwrap();
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_read_device_serial_number() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_read_device_serial_number() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::READ_DEVICE_SERIAL_NUMBER);
 
@@ -241,13 +241,13 @@ fn test_read_device_serial_number() {
     ];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.read_device_serial_number().unwrap();
+    sensor.read_device_serial_number().await.unwrap();
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_read_firmware_version() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_read_firmware_version() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::READ_FIRMWARE_VERSION);
 
@@ -264,13 +264,13 @@ fn test_read_firmware_version() {
     ];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.read_firmware_version().unwrap();
+    sensor.read_firmware_version().await.unwrap();
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_read_device_status_register() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_read_device_status_register() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::READ_DEVICE_STATUS_REGISTER);
 
@@ -287,33 +287,33 @@ fn test_read_device_status_register() {
     ];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.read_device_status_register().unwrap();
+    sensor.read_device_status_register().await.unwrap();
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_clear_device_status_register() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_clear_device_status_register() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::CLEAR_DEVICE_STATUS_REGISTER);
 
     let expectations = [I2cTrans::write(DEV_ADDR, cmd)];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.clear_device_status_register().unwrap();
+    sensor.clear_device_status_register().await.unwrap();
 
     sensor.destroy().done();
 }
 
-#[test]
-fn test_device_reset() {
+#[maybe_async::test(feature = "sync", async(not(feature = "sync"), async_std::test))]
+async fn test_device_reset() {
     let mut cmd: Vec<u8> = Vec::new();
     cmd.extend_from_slice(&Register::DEVICE_RESET);
 
     let expectations = [I2cTrans::write(DEV_ADDR, cmd)];
     let mut sensor = Sps30::new_sps30(I2cMock::new(&expectations), NoopDelay);
 
-    sensor.device_reset().unwrap();
+    sensor.device_reset().await.unwrap();
 
     sensor.destroy().done();
 }
